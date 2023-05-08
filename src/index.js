@@ -7,7 +7,7 @@ function setGame() {
     content.innerHTML = `
     <input type="text" id="name" class="rounded-xl border-2 border-gray-300 p-4" placeholder="Nome">
     <div class="flex gap-4">
-    <input type="checkbox" id="isVisible" class="rounded-xl border-2 border-gray-300">
+    <input type="checkbox" id="isVisible" class="rounded-xl border-2 border-gray-300" checked>
 
         <p class="text-xl my-auto">Visibile</p>
     </div>
@@ -49,15 +49,17 @@ function createGame(name, isVisible) {
         .then((response) => response.json())
         .then((json) => {
             console.log(json);
-            window.location.href = "game.html?id=" + json.data.id;
+            localStorage.setItem('name', `scopa${isVisible}_${name}`);
+            localStorage.setItem('id', json.data.id);
+            window.location.href = "game.html";
         });
 
 
 }
 
 
-function joinLobby() {
-    fetch('https://classe5ID.altervista.org/games/partita', {
+async function joinLobby() {
+    await fetch('https://classe5ID.altervista.org/games/partita', {
         method: 'GET',
 
         headers: {
@@ -120,9 +122,12 @@ function joinLobby() {
 
 
 function joinGame(id) {
-    idString = id.toString();
+    let idString = id.toString();
     let name = document.getElementById('name').value;
 
+    if (name == "") 
+        name = "Giocatore_2";
+    
 
     fetch(`https://classe5ID.altervista.org/games/join/${idString}/${name}`, {
         method: 'POST',
@@ -131,18 +136,15 @@ function joinGame(id) {
             'Authorization': 'Basic ' + btoa('4ID:Grena')
         }
     })
-
-        //in caso di errore
-        
-        //window.location.href = "game.html?id=" + json.data.id;
-        /*.catch((error) => {
-            console.error(error);
-            alert("Errore: " + error);
-        }
-    );*/
-
-
-
+        .then((response) => {
+            if (response.status == 200) {
+                localStorage.setItem("id", idString);
+                localStorage.setItem("name", name);
+                window.location.href = "game.html";
+            } else {
+                alert("Errore: " + response.status);
+            }
+        })
 
 }
 
@@ -192,6 +194,13 @@ function settings() {
     content.innerHTML = '';
     //crea impostazioni
     content.innerHTML = `
+    <!-- crediti -->
+    <h1 class="text-xl">Crediti<br></h1>
+    <p>Grafica: Nicola Preda<br></p>
+    <p>Programmazione: Nicola Preda<br></p>
+    <p>Idea: Nicola Preda<br></p>
+    <p>Social: Nicola Preda<br></p>
+
     <button class="group h-12 px-6 border-2 border-gray-300 rounded-full transition duration-300 hover:border-green-700 focus:bg-blue-50 active:bg-blue-100" onclick="createMenu()">
         <div class="relative flex items-center space-x-4 justify-center">
             <a>
