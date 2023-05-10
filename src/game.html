@@ -14,50 +14,47 @@
         <p>Attendi che un giocatore entri nella partita.</p>
       </div>
       
+    <!--inserisci i punteggi con il numero di scope di ogni giocatore su una riga-->
+      <div class="flex">
+        <div class="flex-1 text-center  px-4 py-2 m-2">
+          <div class="text-gray-100 font-bold text-xl mb-2" id="player1">Giocatore 1</div>
+          <p class="text-gray-100 text-base">Scope: <span id="score1">0</span></p>
+        </div>
+        <!--inserisci il turno-->
+        <div class="flex-1 text-center  px-4 py-2 m-2">
+          <div class="text-gray-100 font-bold text-xl mb-2" id="turn">Turno: <span id="turnNumber">0</span></div>
+        </div>
+        
+        <div class="flex-1 text-center  px-4 py-2 m-2">
+          <div class="text-gray-100 font-bold text-xl mb-2" id="player2">Giocatore 2</div>
+          <p class="text-gray-100 text-base">Scope: <span id="score2">0</span></p>
+        </div>
+      </div>
+
 
     <div class="flex items-center justify-center text-center h-screen">
         <div>
-            <div>
-                <div class="grid grid-cols-3 place-items-center" id="enemyDeck">
-                    <div class="col-span-1">
-                        <canvas id="enemy0" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-black shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="enemy1" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-black shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="enemy2" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-black shadow-xl"></canvas>
-                    </div>
+            <div id="enemyDeck">
+                <div class="grid grid-cols-3 place-items-center">
+                        <canvas id="enemy0" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas id="enemy1" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas id="enemy2" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
                 </div>
             </div>
-            <div>
+            <div >
                 <div class="grid grid-cols-4 place-items-center my-32 md:gap-16 gap-4" id="centralDeck">
-                    <div class="col-span-1">
-                        <canvas id="canvas0" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="canvas1" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="canvas2" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="canvas3" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
+                        <canvas id="canvas0" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas id="canvas1" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas id="canvas2" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas id="canvas3" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
                 </div>
             </div>
             
             <div>
                 <div class="grid grid-cols-3 place-items-center" id="allyDeck">
-                    <div class="col-span-1">
-                        <canvas id="ally0" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="ally1" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
-                    <div class="col-span-1">
-                        <canvas id="ally2" class="rounded-xl cursor-pointer hover:scale-110 transition border-2 border-gray-200 shadow-xl"></canvas>
-                    </div>
+                        <canvas onclick="clickCard(0)" id="ally0" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas onclick="clickCard(1)" id="ally1" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+                        <canvas onclick="clickCard(2)" id="ally2" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
                 </div>
             </div>
         </div>
