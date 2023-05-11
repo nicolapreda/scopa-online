@@ -8,7 +8,7 @@ retroImage.src = './assets/retro.png';
 
 var id = localStorage.getItem('id');
 
-var turn = 1;
+var turn = 0;
 var joined = false;
 var isHosting = false;
 var playeralert = document.getElementById('playeralert');
@@ -16,24 +16,22 @@ var playeralert = document.getElementById('playeralert');
 var carte = [];
 var carteTavolo = [];
 var auth = 'Basic ' + btoa('4ID:Grena');
+var lastCardPlayed;
 
 var score1 = 0;
 var score2 = 0;
 
 
 
-
-
 if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('name').startsWith("scopa0")) {
     //è l'host
-
-    //decidi casualmente il turno
     isHosting = true;
-    checkPlay();
 
-    function checkPlay() {
+    checkPlayerJoin();
+
+    function checkPlayerJoin() {
         //attendi una mossa che manderà il giocatore che si è unito
-        fetch(` https://classe5ID.altervista.org/games/mossa/${id}/turn_${turn}`, {
+        fetch(` https://classe5ID.altervista.org/games/mossa/${id}/`, {
             method: 'GET',
 
             headers: {
@@ -46,16 +44,17 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                 if (json.data.play == null) {
                     //inserisci all'interno dell'html un modal che indica che il giocatore deve ancora entrare
                     playeralert.classList.remove('hidden');
-                    setTimeout(function () { checkPlay() }, 3000);
+                    setTimeout(function () { checkPlayerJoin() }, 1000);
                 }
                 else {
                     playeralert.classList.add('hidden');
-                    console.log("Joined!");
+                    console.log("Un giocatore è entrato in partita");
+                    alert("Un giocatore è entrato in partita");
                     joined = true;
+
 
                     fetch(`https://classe5ID.altervista.org/games/mosse/${id}`, {
                         method: 'GET',
-
                         headers: {
                             'Content-type': 'application/json; charset=UTF-8',
                             'Authorization': auth
@@ -66,120 +65,209 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                             console.log(json);
                             //fai un foreach per ogni mossa e controlla se sono già stati definiti turni e carte
                             json.data.moves.forEach(element => {
-                                if (element.mossa.startsWith("turn_")) {
+                                if (element.MOSSA.startsWith("turn_")) {
                                     //riempi la variabile turn con il turno
-                                    turn = element.mossa.split("_");
+                                    turn = element.MOSSA.split("_");
                                     turn.shift();
                                     console.log(turn);
+                                    document.getElementById('turnNumber').innerHTML = turn;
+
 
                                 }
-                                else{
-                                    turn = Math.floor(Math.random() * 2) + 1;
-                                    console.log(turn);
-                
-                                    //manda al server il turno
-                                    fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/turn_${turn}`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-type': 'application/json; charset=UTF-8',
-                                            'Authorization': 'Basic ' + btoa('4ID:Grena')
-                                        },
-                                    }).then((response) => response.json())
-                
-                                }
-                                if (element.mossa.startsWith("carteTavolo_")) {
-                                    //riempi la variabile cartetavolo con le carte del tavolo
-                                    carteTavolo = element.mossa.split("_");
+                                if (element.MOSSA.startsWith("carteTavolo_")) {
+                                    //riempi la variabile cartetavolo con le carte del tavolo e trasformandole in int
+                                    carteTavolo = element.MOSSA.split("_");
                                     carteTavolo.shift();
-                                    console.log(carteTavolo);
-                                }
-                                else {
-                                    //riempi carteTavolo casualmente con 4 carte
-                                    for (var i = 0; i < 4; i++) {
-                                        var val1 = Math.floor(Math.random() * 3) + 1;
-                                        var val2 = Math.floor(Math.random() * 10) + 1;
-                                        //unisci(non somma) val1 e val2 in un unica variabile
-                                        var carta = val1 + "" + val2;
-                                        //trasforma carta in int
-                                        carta = parseInt(carta);
-
-                                        //inserisci la carta nell'array
-                                        carteTavolo.push(carta);
-
+                                    carteTavolo.forEach(element => {
+                                        element = parseInt(element);
                                     }
-
-                                    //manda al server le carte del tavolo
-                                    fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/carteTavolo_${carteTavolo[0]}_${carteTavolo[1]}_${carteTavolo[2]}_${carteTavolo[3]}`, {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-type': 'application/json; charset=UTF-8',
-                                            'Authorization': 'Basic ' + btoa('4ID:Grena')
-                                        },
-                                    }).then((response) => response.json())
+                                    );
+                                    console.log(carteTavolo);
 
                                 }
-
                             });
 
+
+
+
+
+                            //controlla se carteTavolo è vuoto
+                            if (carteTavolo.length == 0) {
+                                //riempi carteTavolo casualmente con 4 carte
+                                for (var i = 0; i < 4; i++) {
+                                    var val1 = Math.floor(Math.random() * 3) + 1;
+                                    var val2 = Math.floor(Math.random() * 10) + 1;
+                                    //unisci(non somma) val1 e val2 in un unica variabile
+                                    var carta = val1 + "" + val2;
+                                    //trasforma carta in int
+                                    carta = parseInt(carta);
+                                    //inserisci la carta nell'array
+                                    carteTavolo.push(carta);
+
+                                }
+
+                                //manda al server le carte del tavolo
+                                fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/carteTavolo_${carteTavolo[0]}_${carteTavolo[1]}_${carteTavolo[2]}_${carteTavolo[3]}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-type': 'application/json; charset=UTF-8',
+                                        'Authorization': 'Basic ' + btoa('4ID:Grena')
+                                    },
+                                }).then((response) => response.json())
+
+
+                            }
+
+                            //controlla se turn è ancora 0
+                            if (turn == 0) {
+                                turn = Math.floor(Math.random() * 2) + 1;
+                                console.log(turn);
+
+                                //manda al server il turno
+                                fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/turn_${turn}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-type': 'application/json; charset=UTF-8',
+                                        'Authorization': 'Basic ' + btoa('4ID:Grena')
+                                    },
+                                }).then((response) => response.json())
+
+                                //inserisci il turno nell'html
+                                document.getElementById('turnNumber').innerHTML = turn;
+                            }
+
+                            for (var i = 0; i < 4; i++) {
+                                var canvas = document.getElementById('canvas' + i);
+                                ctx = canvas.getContext('2d');
+                                canvas.width = 94;
+                                canvas.height = 167;
+
+                                ctx.scale(0.3, 0.3);
+                                var cardType = carteTavolo[i].toString().charAt(0);
+                                var cardNumber = carteTavolo[i].toString().charAt(1);
+
+                                //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                                ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+
+                            }
                         });
 
-
-
-                    //disegna le carte del tavolo
-                    for (var i = 0; i < 4; i++) {
-                        var canvas = document.getElementById('canvas' + i);
-                        ctx = canvas.getContext('2d');
-                        canvas.width = 94;
-                        canvas.height = 167;
-
-                        ctx.scale(0.3, 0.3);
-                        var cardType = carteTavolo[i].toString().charAt(0);
-                        var cardNumber = carteTavolo[i].toString().charAt(1);
-
-                        //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
-                        ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
-
-
-                    }
 
                 }
 
             });
+
     }
 
 }
 else {
-    fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/joined`, {
-        method: 'POST',
-
+    //controlla se è già stata inviata la mossa "joined"
+    fetch(`https://classe5ID.altervista.org/games/mosse/${id}`, {
+        method: 'GET',
         headers: {
             'Content-type': 'application/json; charset=UTF-8',
-            'Authorization': 'Basic ' + btoa('4ID:Grena')
+            'Authorization': 'Basic ' + btoa('4ID:Grena'),
         },
 
     }).then((response) => response.json())
         .then((json) => {
             console.log(json);
+            //fai un foreach per ogni mossa e controlla se è già stata inviata la mossa "joined". altrimenti, inviala
+            json.data.moves.forEach(element => {
+                if (element.MOSSA.startsWith("joined")) {
+                    joined = true;
+                }
+            });
+            if (joined == false) {
+
+
+
+                fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/joined`, {
+                    method: 'POST',
+
+                    headers: {
+                        'Content-type': 'application/json; charset=UTF-8',
+                        'Authorization': 'Basic ' + btoa('4ID:Grena')
+                    },
+
+                }).then((response) => response.json())
+                    .then((json) => {
+                        console.log(json);
+                    });
+
+            }
         });
 
 
-    //attendi che tra le risposte del server arrivino le carte del mazzo
-    setInterval(async () => {
+    waitCards();
+    function waitCards() {
+        //attendi la mossa che inizia con "carteTavolo_" e riempi carteTavolo con le carte del tavolox
         fetch(`https://classe5ID.altervista.org/games/mosse/${id}`, {
             method: 'GET',
 
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
-                'Authorization': 'Basic ' + btoa('4ID:Grena')
+                'Authorization': auth
             },
 
         }).then((response) => response.json())
             .then((json) => {
+                console.log(json);
+                //fai un foreach per ogni mossa e controlla se sono già stati definiti turni e carte
+                json.data.moves.forEach(element => {
+                    if (element.MOSSA.startsWith("turn_")) {
+                        //riempi la variabile turn con il turno
+                        turn = element.MOSSA.split("_");
+                        turn.shift();
+                        console.log(turn);
 
+                    }
+
+                    if (element.MOSSA.startsWith("carteTavolo_")) {
+                        //riempi la variabile cartetavolo con le carte del tavolo
+                        carteTavolo = element.MOSSA.split("_");
+                        carteTavolo.shift();
+                        //trasforma le carte in int
+                        carteTavolo.forEach(element => {
+                            element = parseInt(element);
+                        });
+
+                        console.log(carteTavolo);
+                    }
+
+
+
+                });
+                //se turno è 0 oppure se carteTavolo è vuoto
+                if (turn == 0 || carteTavolo.length == 0) {
+                    setTimeout(function () { waitCards() }, 1000);
+                }
+
+                for (var i = 0; i < 4; i++) {
+                    var canvas = document.getElementById('canvas' + i);
+                    ctx = canvas.getContext('2d');
+                    canvas.width = 94;
+                    canvas.height = 167;
+
+                    ctx.scale(0.3, 0.3);
+                    var cardType = carteTavolo[i].toString().charAt(0);
+                    var cardNumber = carteTavolo[i].toString().charAt(1);
+
+                    //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                    ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+
+                }
+                if (turn != 2)
+                    waitForEnemy();
             });
-    }, 500)
+    }
+
+
 
 }
+
 
 sourceImage.onload = function () {
     //riempi carte con 3 carte casuali
@@ -211,8 +299,9 @@ sourceImage.onload = function () {
 
     }
 
-}
 
+
+}
 
 retroImage.onload = function () {
     var w = 0;
@@ -231,14 +320,13 @@ retroImage.onload = function () {
 
 }
 
-//crea una funzione che si attiva al click delle carte, e che manda al server la carta cliccata
-function clickCard(id) {
+function clickCard(cardId) {
 
     //se è il turno del giocatore
-    if (turn == 1) {
+    if (turn == 1 && isHosting == true || turn == 2 && isHosting == false) {
 
         //togli la canvas dal mazzo alleato e portala al tavolo, aggiorna anche le variabili carte e carteTavolo
-        var canvas = document.getElementById('ally' + id);
+        var canvas = document.getElementById('ally' + cardId);
 
 
         var card = `                    <div class="col-span-1">
@@ -257,13 +345,13 @@ function clickCard(id) {
         canvas2.width = 94;
         canvas2.height = 167;
         ctx2.scale(0.3, 0.3);
-        var cardType = carte[id].toString().charAt(0);
-        var cardNumber = carte[id].toString().charAt(1);
+        var cardType = carte[cardId].toString().charAt(0);
+        var cardNumber = carte[cardId].toString().charAt(1);
         ctx2.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
 
 
-        carteTavolo.push(carte[id]);
-        carte.splice(id, 1);
+        carteTavolo.push(carte[cardId]);
+        carte.splice(cardId, 1);
         canvas.remove();
 
         var allyDeck = document.getElementById('allyDeck');
@@ -280,7 +368,7 @@ function clickCard(id) {
 
             headers: {
                 'Content-type': 'application/json; charset=UTF-8',
-                'Authorization': 'Basic ' + btoa('4ID:Grena')
+                'Authorization': auth
 
             },
 
@@ -290,16 +378,74 @@ function clickCard(id) {
             });
 
 
-        //cambia il turno   
-        turn = 2;
+        //se il turno è uguale a 2, imposta a 1, altrimenti imposta a 2
+        if (turn == 2)
+            turn = 1;
+        else
+            turn = 2;
+
+        document.getElementById('turnNumber').innerHTML = turn;
+        //aggiorna la variabile lastCardPlayed
+        lastCardPlayed = carteTavolo[carteTavolo.length - 1];
 
 
+        //attendi la risposta dell'avversario
+        waitForEnemy();
 
     }
     else {
         alert("Non è il tuo turno!");
     }
 }
+
+
+function waitForEnemy() {
+
+    fetch(`https://classe5ID.altervista.org/games/mossa/${id}`, {
+        method: 'GET',
+        headers: {
+            'Content-type': 'application/json; charset=UTF-8',
+            'Authorization': 'Basic ' + btoa('4ID:Grena')
+        }
+    }).then((response) => response.json())
+        .then((json) => {
+            console.log(json);
+            //se il mazzo centrale è stato modificato
+            if (json.data.play.MOSSA != "card_" + lastCardPlayed) {
+                //aggiorna la variabile lastCardPlayed
+                lastCardPlayed = json.data.play.MOSSA;
+                //aggiungi la carta al tavolo
+                var canvas = document.getElementById('enemy2');
+                var card = `
+    <canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+
+`;
+
+                var centralDeck = document.getElementById('centralDeck');
+                centralDeck.className = `grid grid-cols-${carteTavolo.length + 1} place-items-center my-32 md:gap-16 gap-4`;
+                centralDeck.insertAdjacentHTML('beforeend', card);
+
+                //imposta alla nuova carta la stessa foto della carta cliccata
+                var canvas2 = document.getElementById('canvas' + (carteTavolo.length + 1));
+                ctx2 = canvas2.getContext('2d');
+                canvas2.width = 94;
+                canvas2.height = 167;
+                ctx2.scale(0.3, 0.3);
+                json.data.play.MOSSA = json.data.play.MOSSA.substring(5);
+
+
+                var cardType = json.data.play.MOSSA.toString().charAt(0);
+                var cardNumber = json.data.play.MOSSA.toString().charAt(1);
+                ctx2.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+            }
+        });
+
+
+
+}
+
+
 
 //controlla se centralDeck è stato modificato con un evento
 centralDeck.addEventListener('DOMSubtreeModified', function () {
@@ -347,89 +493,6 @@ function checkScopa() {
         }
     }
 }
-
-
-/*function checkSetteBello() {
-    //se il numero di carte sul tavolo è uguale a 2
-    if (carteTavolo.length == 2) {
-        //se la somma delle carte è uguale a 7
-        if (carteTavolo[0] + carteTavolo[1] == 7) {
-            //se è il turno del giocatore
-            if (turn == 1) {
-                //aggiungi 1 al punteggio del giocatore
-                score1++;
-                //aggiorna il punteggio
-                document.getElementById('score1').innerHTML = score1;
-                //togli le carte dal tavolo
-                for (var i = 0; i < carteTavolo.length; i++) {
-                    var canvas = document.getElementById('canvas' + (i + 1));
-                    canvas.remove();
-                }
-                //svuota l'array delle carte sul tavolo
-                carteTavolo = [];
-                //cambia il turno
-                turn = 2;
-            }
-            else {
-                //aggiungi 1 al punteggio del giocatore
-                score2++;
-                //aggiorna il punteggio
-                document.getElementById('score2').innerHTML = score2;
-                //togli le carte dal tavolo
-                for (var i = 0; i < carteTavolo.length; i++) {
-                    var canvas = document.getElementById('canvas' + (i + 1));
-                    canvas.remove();
-                }
-                //svuota l'array delle carte sul tavolo
-                carteTavolo = [];
-                //cambia il turno
-                turn = 1;
-            }
-        }
-    }
-}*/
-
-
-/*function checkAsso() {
-    //se il numero di carte sul tavolo è uguale a 1
-    if (carteTavolo.length == 1) {
-        //se la carta è un asso
-        if (carteTavolo[0].toString().charAt(1) == 1) {
-            //se è il turno del giocatore
-            if (turn == 1) {
-                //aggiungi 1 al punteggio del giocatore
-                score1++;
-                //aggiorna il punteggio
-                document.getElementById('score1').innerHTML = score1;
-                //togli le carte dal tavolo
-                for (var i = 0; i < carteTavolo.length; i++) {
-                    var canvas = document.getElementById('canvas' + (i + 1));
-                    canvas.remove();
-                }
-                //svuota l'array delle carte sul tavolo
-                carteTavolo = [];
-                //cambia il turno
-                turn = 2;
-            }
-            else {
-                //aggiungi 1 al punteggio del giocatore
-                score2++;
-                //aggiorna il punteggio
-                document.getElementById('score2').innerHTML = score2;
-                //togli le carte dal tavolo
-                for (var i = 0; i < carteTavolo.length; i++) {
-                    var canvas = document.getElementById('canvas' + (i + 1));
-                    canvas.remove();
-                }
-                //svuota l'array delle carte sul tavolo
-                carteTavolo = [];
-                //cambia il turno
-                turn = 1;
-            }
-        }
-    }
-}*/
-
 
 
 
