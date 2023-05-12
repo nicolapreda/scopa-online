@@ -70,7 +70,7 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                                     turn = element.MOSSA.split("_");
                                     turn.shift();
                                     console.log(turn);
-                                    document.getElementById('turnNumber').innerHTML = turn;
+
 
 
                                 }
@@ -132,10 +132,19 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                                     },
                                 }).then((response) => response.json())
 
-                                //inserisci il turno nell'html
-                                document.getElementById('turnNumber').innerHTML = turn;
-                            }
 
+
+                            }
+                            if (turn == 2) {
+                                turn = 1;
+                                document.getElementById('turnNumber').innerHTML = "E' il turno dell'avversario";
+
+                            }
+                            else {
+                                turn = 2;
+                                document.getElementById('turnNumber').innerHTML = "E' il tuo turno";
+
+                            }
                             for (var i = 0; i < 4; i++) {
                                 var canvas = document.getElementById('canvas' + i);
                                 ctx = canvas.getContext('2d');
@@ -220,7 +229,17 @@ else {
                         //riempi la variabile turn con il turno
                         turn = element.MOSSA.split("_");
                         turn.shift();
+                        //trasforma turn in int
+                        turn = parseInt(turn);
+
                         console.log(turn);
+
+                        if (turn == 1) {
+                            document.getElementById('turnNumber').innerHTML = "E' il turno dell'avversario";
+                        }
+                        else if (turn == 2) {
+                            document.getElementById('turnNumber').innerHTML = "E' il tuo turno";
+                        }
 
                     }
 
@@ -259,8 +278,8 @@ else {
 
 
                 }
-                if (turn != 2)
-                    waitForEnemy();
+                /*if (turn != 2)
+                waitForEnemy();*/
             });
     }
 
@@ -329,8 +348,8 @@ function clickCard(cardId) {
         var canvas = document.getElementById('ally' + cardId);
 
 
-        var card = `                    <div class="col-span-1">
-    <canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
+        var card = ` <div class="col-span-1">
+ <canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition shadow-xl"></canvas>
 </div>
 `;
 
@@ -379,18 +398,24 @@ function clickCard(cardId) {
 
 
         //se il turno è uguale a 2, imposta a 1, altrimenti imposta a 2
-        if (turn == 2)
+        if (turn == 2) {
             turn = 1;
-        else
-            turn = 2;
+            document.getElementById('turnNumber').innerHTML = "E' il turno dell'avversario";
 
-        document.getElementById('turnNumber').innerHTML = turn;
+        }
+        else {
+            turn = 2;
+            document.getElementById('turnNumber').innerHTML = "E' il tuo turno";
+
+        }
+
+
         //aggiorna la variabile lastCardPlayed
         lastCardPlayed = carteTavolo[carteTavolo.length - 1];
 
 
         //attendi la risposta dell'avversario
-        waitForEnemy();
+        //waitForEnemy();
 
     }
     else {
@@ -416,13 +441,9 @@ function waitForEnemy() {
                 lastCardPlayed = json.data.play.MOSSA;
                 //aggiungi la carta al tavolo
                 var canvas = document.getElementById('enemy2');
-                var card = `
-    <canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition  shadow-xl"></canvas>
-
-`;
+                var card = `<canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition shadow-xl"></canvas>`;
 
                 var centralDeck = document.getElementById('centralDeck');
-                centralDeck.className = `grid grid-cols-${carteTavolo.length + 1} place-items-center my-32 md:gap-16 gap-4`;
                 centralDeck.insertAdjacentHTML('beforeend', card);
 
                 //imposta alla nuova carta la stessa foto della carta cliccata
@@ -437,7 +458,11 @@ function waitForEnemy() {
                 var cardType = json.data.play.MOSSA.toString().charAt(0);
                 var cardNumber = json.data.play.MOSSA.toString().charAt(1);
                 ctx2.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
-
+                canvas.remove();
+            }
+            else {
+                //aspetta 1 secondo e riprova
+                setTimeout(waitForEnemy, 1000);
             }
         });
 
