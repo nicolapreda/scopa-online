@@ -2,7 +2,6 @@ var canvas;
 var ctx;
 
 var sourceImage = new Image();
-sourceImage.src = './assets/cards.png';
 var retroImage = new Image();
 retroImage.src = './assets/retro.png';
 
@@ -13,8 +12,11 @@ var joined = false;
 var isHosting = false;
 var playeralert = document.getElementById('playeralert');
 
+var mazzo = [];
+
 var carte = [];
 var carteTavolo = [];
+var carteGiocatore2 = [];
 var auth = 'Basic ' + btoa('4ID:Grena');
 var lastCardPlayed;
 
@@ -52,6 +54,14 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                     alert("Un giocatore è entrato in partita");
                     joined = true;
 
+                    //riempi il mazzo con tutte le carte
+                    for (var i = 1; i < 4; i++) {
+                        for (var j = 1; j < 11; j++) {
+                            var carta = i + "" + j;
+                            carta = parseInt(carta);
+                            mazzo.push(carta);
+                        }
+                    }
 
                     fetch(`https://classe5ID.altervista.org/games/mosse/${id}`, {
                         method: 'GET',
@@ -89,22 +99,18 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
 
 
 
-
-
                             //controlla se carteTavolo è vuoto
                             if (carteTavolo.length == 0) {
-                                //riempi carteTavolo casualmente con 4 carte
+                                //attingi casualmente dal mazzo 4 carte e mettile in carteTavolo. dopo che sono state scelte delle carte, imposta il loro valore in mazzo a 0
                                 for (var i = 0; i < 4; i++) {
-                                    var val1 = Math.floor(Math.random() * 3) + 1;
-                                    var val2 = Math.floor(Math.random() * 10) + 1;
-                                    //unisci(non somma) val1 e val2 in un unica variabile
-                                    var carta = val1 + "" + val2;
-                                    //trasforma carta in int
-                                    carta = parseInt(carta);
-                                    //inserisci la carta nell'array
+                                    var carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    while (carta == 0) {
+                                        carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    }
                                     carteTavolo.push(carta);
-
+                                    mazzo[mazzo.indexOf(carta)] = 0;
                                 }
+
 
                                 //manda al server le carte del tavolo
                                 fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/carteTavolo_${carteTavolo[0]}_${carteTavolo[1]}_${carteTavolo[2]}_${carteTavolo[3]}`, {
@@ -117,6 +123,57 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
 
 
                             }
+
+                            if (carte.length == 0) {
+                                //attingi casualmente dal mazzo 3 carte e mettile in carte. dopo che sono state scelte delle carte, imposta il loro valore in mazzo a 0
+                                for (var i = 0; i < 3; i++) {
+                                    var carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    //controlla che la carta non sia uguale a 0
+                                    while (carta == 0) {
+                                        carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    }
+                                    carte.push(carta);
+                                    mazzo[mazzo.indexOf(carta)] = 0;
+                                }
+
+                                fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/carte_${carte[0]}_${carte[1]}_${carte[2]}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-type': 'application/json; charset=UTF-8',
+                                        'Authorization': 'Basic ' + btoa('4ID:Grena'),
+                                    },
+                                }).then((response) => response.json())
+
+
+
+                            }
+
+                            if (carteGiocatore2.length == 0) {
+                                //attingi casualmente dal mazzo 3 carte e mettile in carteGiocatore2. dopo che sono state scelte delle carte, imposta il loro valore in mazzo a 0
+                                for (var i = 0; i < 3; i++) {
+                                    var carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    //controlla che la carta non sia uguale a 0
+                                    while (carta == 0) {
+                                        carta = mazzo[Math.floor(Math.random() * mazzo.length)];
+                                    }
+                                    carteGiocatore2.push(carta);
+                                    mazzo[mazzo.indexOf(carta)] = 0;
+                                }
+
+
+                                //manda al server le carte del tavolo
+                                fetch(`https://classe5ID.altervista.org/games/mossa/${id}/${localStorage.getItem('name')}/carteGiocatore2_${carteGiocatore2[0]}_${carteGiocatore2[1]}_${carteGiocatore2[2]}`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-type': 'application/json; charset=UTF-8',
+                                        'Authorization': 'Basic ' + btoa('4ID:Grena'),
+                                    },
+                                }).then((response) => response.json())
+
+                            }
+
+
+
 
                             //controlla se turn è ancora 0
                             if (turn == 0) {
