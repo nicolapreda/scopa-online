@@ -1,19 +1,17 @@
 var canvas;
 var ctx;
 
-var sourceImage = new Image();
-var retroImage = new Image();
-retroImage.src = './assets/retro.png';
+let sourceImage = new Image();
+let retroImage = new Image();
 
 var id = localStorage.getItem('id');
 
 var turn = 0;
 var joined = false;
-var isHosting = false;
+var isHosting = true;
 var playeralert = document.getElementById('playeralert');
 
 var mazzo = [];
-
 var carte = [];
 var carteTavolo = [];
 var carteGiocatore2 = [];
@@ -22,7 +20,6 @@ var lastCardPlayed;
 
 var score1 = 0;
 var score2 = 0;
-
 
 
 if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('name').startsWith("scopa0")) {
@@ -95,6 +92,32 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                                     console.log(carteTavolo);
 
                                 }
+
+                                if (element.MOSSA.startsWith("carte_")) {
+                                    //riempi la variabile carte con le carte del giocatore e trasformandole in int
+                                    carte = element.MOSSA.split("_");
+                                    carte.shift();
+                                    carte.forEach(element => {
+                                        element = parseInt(element);
+                                    }
+                                    );
+                                    console.log(carte);
+
+                                }
+
+                                if (element.MOSSA.startsWith("carteGiocatore2_")) {
+                                    //riempi la variabile carteGiocatore2 con le carte del giocatore e trasformandole in int
+                                    carteGiocatore2 = element.MOSSA.split("_");
+                                    carteGiocatore2.shift();
+                                    carteGiocatore2.forEach(element => {
+                                        element = parseInt(element);
+                                    }
+                                    );
+                                    console.log(carteGiocatore2);
+
+                                }
+
+
                             });
 
 
@@ -173,6 +196,51 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
                             }
 
 
+                            //riempi carte con 3 carte casuali
+                            sourceImage.onload = function () {
+                                for (var i = 0; i < 3; i++) {
+                                    //riempi la variabile carte: se sei il giocatore host con la variabile carte, se sei il giocatore 2 con la variabile carteGiocatore2
+                                    if (isHosting == true) {
+                                        var cardType = carte[i].toString().charAt(0);
+                                        var cardNumber = carte[i].toString().charAt(1);
+                                    }
+                                    else {
+                                        var cardType = carteGiocatore2[i].toString().charAt(0);
+                                        var cardNumber = carteGiocatore2[i].toString().charAt(1);
+                                    }
+
+
+                                    var canvas = document.getElementById('ally' + i);
+                                    ctx = canvas.getContext('2d');
+                                    canvas.width = 94;
+                                    canvas.height = 167;
+
+                                    ctx.scale(0.3, 0.3);
+
+                                    //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                                    ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+                                }
+
+                                for (var i = 0; i < 4; i++) {
+                                    var canvas = document.getElementById('canvas' + i);
+                                    ctx = canvas.getContext('2d');
+                                    canvas.width = 94;
+                                    canvas.height = 167;
+
+                                    ctx.scale(0.3, 0.3);
+                                    var cardType = carteTavolo[i].toString().charAt(0);
+                                    var cardNumber = carteTavolo[i].toString().charAt(1);
+
+                                    //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                                    ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+
+                                }
+
+
+                            }
+                            sourceImage.src = './assets/cards.png';
 
 
                             //controlla se turn è ancora 0
@@ -193,30 +261,17 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
 
                             }
                             if (turn == 2) {
-                                turn = 1;
                                 document.getElementById('turnNumber').innerHTML = "E' il turno dell'avversario";
 
                             }
                             else {
-                                turn = 2;
                                 document.getElementById('turnNumber').innerHTML = "E' il tuo turno";
 
                             }
-                            for (var i = 0; i < 4; i++) {
-                                var canvas = document.getElementById('canvas' + i);
-                                ctx = canvas.getContext('2d');
-                                canvas.width = 94;
-                                canvas.height = 167;
-
-                                ctx.scale(0.3, 0.3);
-                                var cardType = carteTavolo[i].toString().charAt(0);
-                                var cardNumber = carteTavolo[i].toString().charAt(1);
-
-                                //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
-                                ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
 
 
-                            }
+
+
                         });
 
 
@@ -228,6 +283,8 @@ if (localStorage.getItem('name').startsWith("scopa1") || localStorage.getItem('n
 
 }
 else {
+    isHosting = false;
+
     //controlla se è già stata inviata la mossa "joined"
     fetch(`https://classe5ID.altervista.org/games/mosse/${id}`, {
         method: 'GET',
@@ -312,6 +369,17 @@ else {
                         console.log(carteTavolo);
                     }
 
+                    if (element.MOSSA.startsWith("carteGiocatore2_")) {
+                        //riempi la variabile carteGiocatore2 con le carte del tavolo
+                        carteGiocatore2 = element.MOSSA.split("_");
+                        carteGiocatore2.shift();
+                        //trasforma le carte in int
+                        carteGiocatore2.forEach(element => {
+                            element = parseInt(element);
+                        });
+
+                        console.log(carteGiocatore2);
+                    }
 
 
                 });
@@ -320,23 +388,53 @@ else {
                     setTimeout(function () { waitCards() }, 1000);
                 }
 
-                for (var i = 0; i < 4; i++) {
-                    var canvas = document.getElementById('canvas' + i);
-                    ctx = canvas.getContext('2d');
-                    canvas.width = 94;
-                    canvas.height = 167;
+                //riempi carte con 3 carte casuali
+                sourceImage.onload = function () {
+                    for (var i = 0; i < 3; i++) {
+                        //riempi la variabile carte: se sei il giocatore host con la variabile carte, se sei il giocatore 2 con la variabile carteGiocatore2
+                        if (isHosting == true) {
+                            var cardType = carte[i].toString().charAt(0);
+                            var cardNumber = carte[i].toString().charAt(1);
+                        }
+                        else {
+                            var cardType = carteGiocatore2[i].toString().charAt(0);
+                            var cardNumber = carteGiocatore2[i].toString().charAt(1);
+                        }
 
-                    ctx.scale(0.3, 0.3);
-                    var cardType = carteTavolo[i].toString().charAt(0);
-                    var cardNumber = carteTavolo[i].toString().charAt(1);
 
-                    //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
-                    ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+                        var canvas = document.getElementById('ally' + i);
+                        ctx = canvas.getContext('2d');
+                        canvas.width = 94;
+                        canvas.height = 167;
+
+                        ctx.scale(0.3, 0.3);
+
+                        //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                        ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+                    }
+
+                    for (var i = 0; i < 4; i++) {
+                        var canvas = document.getElementById('canvas' + i);
+                        ctx = canvas.getContext('2d');
+                        canvas.width = 94;
+                        canvas.height = 167;
+
+                        ctx.scale(0.3, 0.3);
+                        var cardType = carteTavolo[i].toString().charAt(0);
+                        var cardNumber = carteTavolo[i].toString().charAt(1);
+
+                        //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
+                        ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+
+
+                    }
 
 
                 }
-                /*if (turn != 2)
-                waitForEnemy();*/
+                sourceImage.src = './assets/cards.png';
+                if (turn != 2)
+                    waitForEnemy();
             });
     }
 
@@ -345,39 +443,9 @@ else {
 }
 
 
-sourceImage.onload = function () {
-    //riempi carte con 3 carte casuali
-    var w = 0;
-    var h = 0;
-
-    for (var i = 0; i < 3; i++) {
-        var val1 = Math.floor(Math.random() * 3) + 1;
-        var val2 = Math.floor(Math.random() * 10) + 1;
-        //unisci(non somma) val1 e val2 in un unica variabile
-        var carta = val1 + "" + val2;
-        //trasforma carta in int
-        carta = parseInt(carta);
-
-        //inserisci la carta nell'array
-        carte.push(carta);
-
-        var canvas = document.getElementById('ally' + i);
-        ctx = canvas.getContext('2d');
-        canvas.width = 94;
-        canvas.height = 167;
-
-        ctx.scale(0.3, 0.3);
-        var cardType = carte[i].toString().charAt(0);
-        var cardNumber = carte[i].toString().charAt(1);
-
-        //disegna il mazzo considerando che la carta è 312x560, e la canvas 94x167. prendi da "carteTavolo" le informazioni: il primo numero riguarda la riga della carta, il secondo la colonna. 
-        ctx.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
-
-    }
 
 
 
-}
 
 retroImage.onload = function () {
     var w = 0;
@@ -393,8 +461,9 @@ retroImage.onload = function () {
         ctx.drawImage(retroImage, 0, 0, 643, 1023, 0, 0, 643, 1023);
 
     }
-
 }
+retroImage.src = "./assets/retro.png";
+
 
 function clickCard(cardId) {
 
@@ -472,7 +541,7 @@ function clickCard(cardId) {
 
 
         //attendi la risposta dell'avversario
-        //waitForEnemy();
+        waitForEnemy();
 
     }
     else {
@@ -493,29 +562,31 @@ function waitForEnemy() {
         .then((json) => {
             console.log(json);
             //se il mazzo centrale è stato modificato
-            if (json.data.play.MOSSA != "card_" + lastCardPlayed) {
-                //aggiorna la variabile lastCardPlayed
-                lastCardPlayed = json.data.play.MOSSA;
-                //aggiungi la carta al tavolo
-                var canvas = document.getElementById('enemy2');
-                var card = `<canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition shadow-xl"></canvas>`;
+            if (json.data.play.MOSSA.startsWith("card_" ) && json.data.play.PLAYER != localStorage.getItem('name')) {
 
-                var centralDeck = document.getElementById('centralDeck');
-                centralDeck.insertAdjacentHTML('beforeend', card);
+                    //aggiorna la variabile lastCardPlayed
+                    lastCardPlayed = json.data.play.MOSSA;
+                    //aggiungi la carta al tavolo
+                    var canvas = document.getElementById('enemy2');
+                    var card = `<canvas id="canvas${carteTavolo.length + 1}" class="rounded-xl cursor-pointer hover:scale-110 transition shadow-xl"></canvas>`;
 
-                //imposta alla nuova carta la stessa foto della carta cliccata
-                var canvas2 = document.getElementById('canvas' + (carteTavolo.length + 1));
-                ctx2 = canvas2.getContext('2d');
-                canvas2.width = 94;
-                canvas2.height = 167;
-                ctx2.scale(0.3, 0.3);
-                json.data.play.MOSSA = json.data.play.MOSSA.substring(5);
+                    var centralDeck = document.getElementById('centralDeck');
+                    centralDeck.insertAdjacentHTML('beforeend', card);
+
+                    //imposta alla nuova carta la stessa foto della carta cliccata
+                    var canvas2 = document.getElementById('canvas' + (carteTavolo.length + 1));
+                    ctx2 = canvas2.getContext('2d');
+                    canvas2.width = 94;
+                    canvas2.height = 167;
+                    ctx2.scale(0.3, 0.3);
+                    json.data.play.MOSSA = json.data.play.MOSSA.substring(5);
 
 
-                var cardType = json.data.play.MOSSA.toString().charAt(0);
-                var cardNumber = json.data.play.MOSSA.toString().charAt(1);
-                ctx2.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
-                canvas.remove();
+                    var cardType = json.data.play.MOSSA.toString().charAt(0);
+                    var cardNumber = json.data.play.MOSSA.toString().charAt(1);
+                    ctx2.drawImage(sourceImage, cardNumber * 309, cardType * 560, 312, 560, 0, 0, 312, 560);
+                    canvas.remove();
+                
             }
             else {
                 //aspetta 1 secondo e riprova
